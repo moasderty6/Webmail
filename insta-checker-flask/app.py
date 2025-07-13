@@ -1,6 +1,7 @@
-import os
 from flask import Flask, request, render_template
 from utils import generate_emails, check_email_with_holehe
+import os
+import asyncio
 
 app = Flask(__name__)
 
@@ -14,7 +15,8 @@ def index():
             return render_template("index.html", error="يرجى إدخال البريد واسم المستخدم")
 
         candidates = generate_emails(email)
-        result = check_email_with_holehe(candidates, username)
+        result = asyncio.run(check_email_with_holehe(candidates, username))
+
         if result:
             return render_template("index.html", result=result)
         else:
