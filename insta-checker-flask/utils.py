@@ -1,5 +1,6 @@
-import subprocess
 import itertools
+import asyncio
+import subprocess
 
 def generate_emails(masked_email):
     prefix, domain = masked_email.split("@")
@@ -17,30 +18,44 @@ def generate_emails(masked_email):
         guess = list(prefix)
         for idx, char in zip(star_indices, combo):
             guess[idx] = char
-        email = ''.join(guess) + '@' + domain
-        yield email
+        yield ''.join(guess) + '@' + domain
+
+async def run_check(email):
+    try:
+        output = subprocess.check_output(
+            ["python3", "holehe_wrapper/run.py", email],
+            text=True,
+            timeout=5
+        )
+        if "Instagram" in output:
+            return email
+    except:
+        return None
 
 async def check_email_with_holehe(email_generator, username):
-    for i, email in enumerate(email_generator):
-        if i > 50:
-            print("⏹️ تجاوزنا الحد التجريبي (50 احتمال). أوقفنا الفحص.")
-            break
+    MAX_PARALLEL = 50
+    tasks = []
 
-        print(f"🔍 تجربة: {email}")
-        try:
-            output = subprocess.check_output(
-                ["python3", "holehe_wrapper/run.py", email],
-                text=True,
-                timeout=5
-            )
-            print(f"📤 النتيجة: {output.strip()}")
-            if "Instagram" in output:
-                print(f"✅ تم إيجاد: {email}")
-                return email
-        except subprocess.TimeoutExpired:
-            print(f"⚠️ تجاوز الوقت في: {email}")
-        except Exception as e:
-            print(f"❌ خطأ في {email}: {e}")
-            continue
+    async def process_batch(batch):
+        results = await asyncio.gather(*[run_check(email) for email in batch])
+        for r in results:
+            if r:
+                return r
+        return None
+
+    batch = []
+    for email in email_generator:
+        batch.append(email)
+        if len(batch) == MAX_PARALLEL:
+            result = await process_batch(batch)
+            if result:
+                return result
+            batch = []
+
+    # Process any remaining emails
+    if batch:
+        result = await process_batch(batch)
+        if result:
+            return result
 
     return None
