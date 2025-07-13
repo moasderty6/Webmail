@@ -1,20 +1,18 @@
-from flask import Flask, request, render_template
-import asyncio
 from utils import generate_emails, check_email_with_holehe
 
-app = Flask(__name__)
+masked_email = "x*****9@gmail.com"
+username = "target_username"
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    result = None
-    if request.method == "POST":
-        masked_email = request.form.get("email")
-        username = request.form.get("username")
-
-        email_generator = generate_emails(masked_email)
-        result = asyncio.run(check_email_with_holehe(email_generator, username))
-
-    return render_template("index.html", result=result)
+async def main():
+    print("🔢 Generating...")
+    emails = generate_emails(masked_email, limit=100000)
+    print("🚀 Running checks...")
+    result = await check_email_with_holehe(emails, username)
+    if result:
+        print(f"✅ Found match: {result}")
+    else:
+        print("❌ No matching email found.")
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    import asyncio
+    asyncio.run(main())
