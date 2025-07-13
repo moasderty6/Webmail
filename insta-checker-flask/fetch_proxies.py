@@ -14,12 +14,12 @@ def generate_proxies_txt(limit=500):
     proxies = []
     proxies += fetch_proxifly()
     proxies += fetch_proxy_scrape()
-    proxies = list(dict.fromkeys(proxies))  # حذف التكرار
+    proxies = list(dict.fromkeys(proxies))  # حذف المكرر
     proxies = proxies[:limit]
     with open("proxies.txt", "w") as f:
         for p in proxies:
             f.write(p + "\n")
-    print(f"✅ Generated proxies.txt with {len(proxies)} proxies")
+    print(f"✅ proxies.txt saved with {len(proxies)} proxies")
 
 if __name__ == "__main__":
     generate_proxies_txt(500)
