@@ -5,12 +5,12 @@ import string
 def generate_emails(masked_email):
     prefix, domain = masked_email.split("@")
 
-    # أين توجد النجوم؟ وبكم عددها؟
+    # استخراج مواقع النجوم
     star_indices = [i for i, c in enumerate(prefix) if c == '*']
     num_stars = len(star_indices)
 
     if num_stars == 0:
-        return [masked_email]  # لا يوجد تخمين مطلوب
+        return [masked_email]  # لا حاجة للتخمين
 
     chars = string.ascii_lowercase + string.digits
     combinations = itertools.product(chars, repeat=num_stars)
@@ -25,3 +25,17 @@ def generate_emails(masked_email):
         if len(emails) >= 30:
             break
     return emails
+
+async def check_email_with_holehe(emails, username):
+    results = []
+    for email in emails:
+        try:
+            output = subprocess.check_output(
+                ["python3", "holehe_wrapper/run.py", email],
+                text=True
+            )
+            if "Instagram" in output:
+                results.append(email)
+        except Exception:
+            continue
+    return results
