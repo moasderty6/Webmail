@@ -1,7 +1,7 @@
-from flask import Flask, request, render_template
-from utils import generate_emails, check_email_with_holehe
 import os
 import asyncio
+from flask import Flask, request, render_template
+from utils import generate_emails, check_email_with_holehe
 
 app = Flask(__name__)
 
@@ -15,14 +15,16 @@ def index():
             return render_template("index.html", error="يرجى إدخال البريد واسم المستخدم")
 
         candidates = generate_emails(email)
-        result = asyncio.run(check_email_with_holehe(candidates, username))
+        result, checked = asyncio.run(run_check(candidates, username))
 
         if result:
-            return render_template("index.html", result=result)
+            return render_template("index.html", result=result, checked=checked)
         else:
-            return render_template("index.html", error="لم يتم العثور على نتيجة")
+            return render_template("index.html", error="لم يتم العثور على نتيجة", checked=checked)
     return render_template("index.html")
 
-if __name__ == "__main__":
-    port = int(os.getenv("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+async def run_check(candidates, username):
+    result = await check_email_with_holehe(candidates, username)
+    return result, candidates
+
+# لا تضع app.run() لأن Gunicorn سيشغل التطبيق
