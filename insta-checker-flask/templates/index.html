@@ -1,25 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Insta-Checker</title>
   <style>
-    body { font-family: Arial; background-color: #f7f7f7; text-align: center; padding: 50px; }
-    input, button { padding: 10px; margin: 10px; width: 300px; }
-    #result { margin-top: 20px; font-weight: bold; color: green; }
+    body { font-family: Tahoma; padding: 30px; text-align: center; background-color: #f5f5f5; }
+    input, button { padding: 10px; width: 300px; margin: 10px; font-size: 16px; }
+    #emails { font-family: monospace; white-space: pre-wrap; margin-top: 20px; color: #333; max-height: 300px; overflow-y: auto; }
   </style>
 </head>
 <body>
-  <h2>🔍 Insta-Checker</h2>
+  <h1>🔍 Insta-Checker</h1>
   <form method="POST">
-    <input type="text" name="email" placeholder="أدخل البريد المخفي" required><br>
-    <input type="text" name="username" placeholder="أدخل يوزر الإنستغرام" required><br>
-    <button type="submit">🔎 فحص</button>
+    <input type="text" name="email" placeholder="x*****9@gmail.com" required><br>
+    <input type="text" name="username" placeholder="اسم المستخدم في إنستغرام" required><br>
+    <button type="submit">ابدأ الفحص</button>
   </form>
 
   {% if result %}
-    <div id="result">✅ البريد الحقيقي هو: {{ result }}</div>
+    <h2>✅ البريد المرتبط بالحساب:</h2>
+    <div style="color: green;"><b>{{ result }}</b></div>
   {% elif error %}
-    <div id="result" style="color:red;">❌ {{ error }}</div>
+    <h2 style="color: red;">{{ error }}</h2>
+  {% endif %}
+
+  {% if checked %}
+    <h3>📧 الإيميلات التي تم فحصها:</h3>
+    <div id="emails">{{ checked | join("\n") }}</div>
   {% endif %}
 </body>
 </html>
