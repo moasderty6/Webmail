@@ -4,7 +4,6 @@ import itertools
 def generate_emails(masked_email):
     prefix, domain = masked_email.split("@")
 
-    # حدد مواقع النجوم
     star_indices = [i for i, c in enumerate(prefix) if c == '*']
     num_stars = len(star_indices)
 
@@ -12,7 +11,6 @@ def generate_emails(masked_email):
         yield masked_email
         return
 
-    # توليد كل الاحتمالات: أحرف + أرقام + _ .
     chars = 'abcdefghijklmnopqrstuvwxyz0123456789_.'
     combinations = itertools.product(chars, repeat=num_stars)
 
@@ -22,3 +20,17 @@ def generate_emails(masked_email):
             guess[idx] = char
         email = ''.join(guess) + '@' + domain
         yield email
+
+
+async def check_email_with_holehe(email_generator, username):
+    for email in email_generator:
+        try:
+            output = subprocess.check_output(
+                ["python3", "holehe_wrapper/run.py", email],
+                text=True
+            )
+            if "Instagram" in output:
+                return email
+        except Exception:
+            continue
+    return None
