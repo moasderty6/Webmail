@@ -2,60 +2,64 @@ import itertools
 import asyncio
 import subprocess
 
-def generate_emails(masked_email):
+CHARS = "abcdefghijklmnopqrstuvwxyz0123456789_."  # 38 حرفًا
+
+def generate_emails(masked_email, limit=100000):
     prefix, domain = masked_email.split("@")
     star_indices = [i for i, c in enumerate(prefix) if c == '*']
-    num_stars = len(star_indices)
-
-    if num_stars == 0:
+    if not star_indices:
         yield masked_email
         return
 
-    chars = 'abcdefghijklmnopqrstuvwxyz0123456789_.'
-    combinations = itertools.product(chars, repeat=num_stars)
-
-    for combo in combinations:
+    combos = itertools.islice(itertools.product(CHARS, repeat=len(star_indices)), limit)
+    for combo in combos:
         guess = list(prefix)
-        for idx, char in zip(star_indices, combo):
-            guess[idx] = char
-        yield ''.join(guess) + '@' + domain
+        for i, char in zip(star_indices, combo):
+            guess[i] = char
+        yield ''.join(guess) + "@" + domain
+
 
 async def run_check(email):
     try:
-        output = subprocess.check_output(
-            ["python3", "holehe_wrapper/run.py", email],
-            text=True,
-            timeout=5
-        )
+        output = await asyncio.to_thread(subprocess.check_output, ["python3", "holehe_wrapper/run.py", email], text=True, timeout=5)
         if "Instagram" in output:
             return email
     except:
         return None
 
+
 async def check_email_with_holehe(email_generator, username):
-    MAX_PARALLEL = 50
-    tasks = []
+    results = []
 
     async def process_batch(batch):
-        results = await asyncio.gather(*[run_check(email) for email in batch])
-        for r in results:
-            if r:
-                return r
+        tasks = [run_check(email) for email in batch]
+        batch_results = await asyncio.gather(*tasks)
+        for result in batch_results:
+            if result:
+                return result
         return None
 
     batch = []
-    for email in email_generator:
+    counter = 0
+    async for email in async_gen_wrapper(email_generator):
         batch.append(email)
-        if len(batch) == MAX_PARALLEL:
-            result = await process_batch(batch)
-            if result:
-                return result
+        counter += 1
+        if len(batch) >= 1000:
+            print(f"🚀 Checking batch {counter}...")
+            found = await process_batch(batch)
+            if found:
+                return found
             batch = []
 
-    # Process any remaining emails
+    # آخر دفعة
     if batch:
-        result = await process_batch(batch)
-        if result:
-            return result
+        found = await process_batch(batch)
+        if found:
+            return found
 
     return None
+
+
+async def async_gen_wrapper(generator):
+    for item in generator:
+        yield item
