@@ -19,7 +19,7 @@ def check():
 
     email_list = generate_emails(masked_email)
 
-    # تشغيل الفحص
+    # تشغيل الفحص مع asyncio
     import asyncio
     result = asyncio.run(check_email_with_holehe(email_list, username))
 
@@ -29,5 +29,5 @@ def check():
     })
 
 if __name__ == "__main__":
-    port = int(os.getenv("PORT", 10000))  # تأكد من تحديد هذا في Render
+    port = int(os.getenv("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
