@@ -6,15 +6,15 @@ app = Flask(__name__)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    results = None
+    result = None
     if request.method == "POST":
         masked_email = request.form.get("email")
         username = request.form.get("username")
 
-        candidates = generate_emails(masked_email)
-        results = asyncio.run(check_email_with_holehe(candidates, username))
+        email_generator = generate_emails(masked_email)
+        result = asyncio.run(check_email_with_holehe(email_generator, username))
 
-    return render_template("index.html", results=results)
+    return render_template("index.html", result=result)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
