@@ -24,7 +24,5 @@ def index():
     return render_template("index.html")
 
 async def run_check(candidates, username):
-    result = await check_email_with_holehe(candidates, username)
-    return result, candidates
-
-# لا تضع app.run() لأن Gunicorn سيشغل التطبيق
+    results = await check_email_with_holehe(candidates, username)
+    return results, candidates
