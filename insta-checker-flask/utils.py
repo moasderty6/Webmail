@@ -3,7 +3,6 @@ import itertools
 
 def generate_emails(masked_email):
     prefix, domain = masked_email.split("@")
-
     star_indices = [i for i, c in enumerate(prefix) if c == '*']
     num_stars = len(star_indices)
 
@@ -21,16 +20,27 @@ def generate_emails(masked_email):
         email = ''.join(guess) + '@' + domain
         yield email
 
-
 async def check_email_with_holehe(email_generator, username):
-    for email in email_generator:
+    for i, email in enumerate(email_generator):
+        if i > 50:
+            print("⏹️ تجاوزنا الحد التجريبي (50 احتمال). أوقفنا الفحص.")
+            break
+
+        print(f"🔍 تجربة: {email}")
         try:
             output = subprocess.check_output(
                 ["python3", "holehe_wrapper/run.py", email],
-                text=True
+                text=True,
+                timeout=5
             )
+            print(f"📤 النتيجة: {output.strip()}")
             if "Instagram" in output:
+                print(f"✅ تم إيجاد: {email}")
                 return email
-        except Exception:
+        except subprocess.TimeoutExpired:
+            print(f"⚠️ تجاوز الوقت في: {email}")
+        except Exception as e:
+            print(f"❌ خطأ في {email}: {e}")
             continue
+
     return None
