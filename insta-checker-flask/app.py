@@ -1,32 +1,25 @@
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, render_template
 from utils import generate_emails, check_email_with_holehe
 
 app = Flask(__name__)
 
-@app.route("/", methods=["GET"])
+@app.route("/", methods=["GET", "POST"])
 def index():
-    return "✅ Insta-Checker is running."
+    if request.method == "POST":
+        email = request.form.get("email")
+        username = request.form.get("username")
 
-@app.route("/check", methods=["POST"])
-def check():
-    data = request.get_json()
-    masked_email = data.get("email")
-    username = data.get("username")
+        if not email or not username:
+            return render_template("index.html", error="يرجى إدخال البريد واسم المستخدم")
 
-    if not masked_email or not username:
-        return jsonify({"error": "Missing email or username"}), 400
-
-    email_list = generate_emails(masked_email)
-
-    # تشغيل الفحص مع asyncio
-    import asyncio
-    result = asyncio.run(check_email_with_holehe(email_list, username))
-
-    return jsonify({
-        "status": "success",
-        "matched_email": result if result else None
-    })
+        candidates = generate_emails(email)
+        result = check_email_with_holehe(candidates, username)
+        if result:
+            return render_template("index.html", result=result)
+        else:
+            return render_template("index.html", error="لم يتم العثور على نتيجة")
+    return render_template("index.html")
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 10000))
