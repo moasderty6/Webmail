@@ -19,7 +19,7 @@
 
   {% if result %}
     <h2>✅ البريد المرتبط بالحساب:</h2>
-    <div style="color: green;"><b>{{ result }}</b></div>
+    <div style="color: green;"><b>{{ result | join('<br>') }}</b></div>
   {% elif error %}
     <h2 style="color: red;">{{ error }}</h2>
   {% endif %}
